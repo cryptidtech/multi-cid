@@ -404,4 +404,20 @@ mod tests {
         assert!(cid1 != cid2);
         assert!(!cid2.is_null());
     }
+
+    #[test]
+    fn test_string_roundtrip() {
+        let v1 = Builder::new(Codec::Cidv1)
+            .with_target_codec(Codec::DagCbor)
+            .with_hash(
+                &mh::Builder::new_from_bytes(Codec::Sha3512, b"for great justice, move every zig!")
+                    .unwrap()
+                    .try_build()
+                    .unwrap(),
+            )
+            .try_build()
+            .unwrap();
+        let s = v1.to_string();
+        assert_eq!(s, EncodedCid::try_from(s.as_str()).unwrap().to_string());
+    }
 }
