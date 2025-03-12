@@ -156,6 +156,13 @@ impl fmt::Debug for Cid {
     }
 }
 
+impl fmt::Display for Cid {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let encoded = EncodedCid::new(self.encoding(), self.clone());
+        write!(f, "{}", encoded)
+    }
+}
+
 /// Hash builder that takes the codec and the data and produces a Multihash
 #[derive(Clone, Debug, Default)]
 pub struct Builder {
@@ -210,8 +217,7 @@ impl Builder {
             return Err(CidError::LegacyCid.into());
         }
         Ok(EncodedCid::new(
-            self.base_encoding
-                .unwrap_or_else(Cid::preferred_encoding),
+            self.base_encoding.unwrap_or_else(Cid::preferred_encoding),
             self.try_build()?,
         ))
     }
@@ -275,17 +281,23 @@ mod tests {
         assert_eq!(Codec::Sha2256, v0_1.hash.codec());
 
         // this does not assume a multibase encoded CID
-        let v0_2 = EncodedCid::try_from("bafybeihcrr5owouhnms63areolshu2lp4jjbjqlhf4exegk7tnso5ja6py").unwrap();
+        let v0_2 =
+            EncodedCid::try_from("bafybeihcrr5owouhnms63areolshu2lp4jjbjqlhf4exegk7tnso5ja6py")
+                .unwrap();
         assert_eq!(Codec::Cidv1, v0_2.codec());
         assert_eq!(Codec::DagPb, v0_2.target_codec);
         assert_eq!(Codec::Sha2256, v0_2.hash.codec());
 
-        let v0_3 = EncodedCid::try_from("f01701220e28c7aeb3a876b25ed822472e47a696fe25214c1672f0972195f9b64eea41e7e").unwrap();
+        let v0_3 = EncodedCid::try_from(
+            "f01701220e28c7aeb3a876b25ed822472e47a696fe25214c1672f0972195f9b64eea41e7e",
+        )
+        .unwrap();
         assert_eq!(Codec::Cidv1, v0_3.codec());
         assert_eq!(Codec::DagPb, v0_3.target_codec);
         assert_eq!(Codec::Sha2256, v0_3.hash.codec());
 
-        let v0_4 = EncodedCid::try_from("uAXASIOKMeus6h2sl7YIkcuR6aW_iUhTBZy8Jchlfm2TupB5-").unwrap();
+        let v0_4 =
+            EncodedCid::try_from("uAXASIOKMeus6h2sl7YIkcuR6aW_iUhTBZy8Jchlfm2TupB5-").unwrap();
         assert_eq!(Codec::Cidv1, v0_4.codec());
         assert_eq!(Codec::DagPb, v0_4.target_codec);
         assert_eq!(Codec::Sha2256, v0_4.hash.codec());
@@ -391,5 +403,21 @@ mod tests {
         let cid2 = Cid::default();
         assert!(cid1 != cid2);
         assert!(!cid2.is_null());
+    }
+
+    #[test]
+    fn test_string_roundtrip() {
+        let v1 = Builder::new(Codec::Cidv1)
+            .with_target_codec(Codec::DagCbor)
+            .with_hash(
+                &mh::Builder::new_from_bytes(Codec::Sha3512, b"for great justice, move every zig!")
+                    .unwrap()
+                    .try_build()
+                    .unwrap(),
+            )
+            .try_build()
+            .unwrap();
+        let s = v1.to_string();
+        assert_eq!(s, EncodedCid::try_from(s.as_str()).unwrap().to_string());
     }
 }
