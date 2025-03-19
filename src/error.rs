@@ -1,4 +1,5 @@
 // SPDX-License-Idnetifier: Apache-2.0
+use super::*;
 
 /// Errors created by this library
 #[derive(Clone, Debug, thiserror::Error)]

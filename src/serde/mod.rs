@@ -3,9 +3,15 @@
 mod de;
 mod ser;
 
+use super::*;
+
 #[cfg(test)]
 mod tests {
-    use crate::{cid, vlad};
+    use super::*;
+    use crate::{
+        cid::{self, Cid, EncodedCid},
+        vlad::{self, EncodedVlad, Vlad},
+    };
     use multicodec::Codec;
     use multihash::mh;
     use multikey::nonce;
@@ -427,13 +433,13 @@ mod tests {
 
     #[test]
     fn test_null_cid_serde_compact() {
-        let c = cid::Cid::null();
+        let c = Cid::null();
         assert_tokens(&c.compact(), &[Token::BorrowedBytes(&[1, 0, 0, 0])]);
     }
 
     #[test]
     fn test_null_cid_serde_readable() {
-        let c = cid::Cid::null();
+        let c = Cid::null();
         assert_tokens(
             &c.readable(),
             &[
@@ -462,13 +468,13 @@ mod tests {
 
     #[test]
     fn test_encoded_null_cid_serde_readable() {
-        let c: cid::EncodedCid = cid::Cid::null().into();
+        let c: EncodedCid = Cid::null().into();
         assert_tokens(&c.readable(), &[Token::BorrowedStr("z2UzHM")]);
     }
 
     #[test]
     fn test_null_vlad_serde_compact() {
-        let v = vlad::Vlad::null();
+        let v = Vlad::null();
         assert_tokens(
             &v.compact(),
             &[Token::BorrowedBytes(&[135, 36, 187, 36, 0, 1, 0, 0, 0])],
@@ -477,7 +483,7 @@ mod tests {
 
     #[test]
     fn test_null_vlad_serde_readable() {
-        let v = vlad::Vlad::null();
+        let v = Vlad::null();
         assert_tokens(
             &v.readable(),
             &[
@@ -520,7 +526,7 @@ mod tests {
 
     #[test]
     fn test_encoded_null_vlad_serde_readable() {
-        let v: vlad::EncodedVlad = vlad::Vlad::null().into();
+        let v: EncodedVlad = Vlad::null().into();
         assert_tokens(&v.readable(), &[Token::BorrowedStr("bq4slwjaaaeaaaaa")]);
     }
 }

@@ -1,11 +1,13 @@
 // SPDX-License-Idnetifier: Apache-2.0
+use super::{multicodec, multihash};
 use crate::{vlad, Cid, Vlad};
+
 use core::fmt;
 use multicodec::Codec;
 use multihash::Multihash;
-use multikey::Nonce;
 #[cfg(feature = "dag_cbor")]
-use multitrait::TryDecodeFrom;
+use multikey::multicrates::multitrait::TryDecodeFrom;
+use multikey::Nonce;
 use serde::{
     de::{Error, MapAccess, Visitor},
     Deserialize, Deserializer,

@@ -17,8 +17,8 @@ impl ser::Serialize for Cid {
         } else {
             #[cfg(feature = "dag_cbor")]
             {
-                use multicodec::Codec;
-              
+                use multikey::multicrates::multicodec::Codec;
+
                 // build the byte string for DAG-CBOR according to the spec
                 // https://github.com/ipld/specs/blob/master/block-layer/codecs/dag-cbor.md#links
                 let mut v = Vec::new();
