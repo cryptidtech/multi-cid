@@ -35,5 +35,5 @@ pub mod prelude {
 }
 
 // Re-export all multi* crates to avoid dependency conflicts
-//pub use multicrates::{multibase, multicodec, multihash, multisig, multitrait, multiutil};
+pub use multikey::multicrates;
 pub use multikey::multicrates::*;
