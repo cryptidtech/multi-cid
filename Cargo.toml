@@ -16,22 +16,22 @@ default = ["serde", "dag_cbor"]
 dag_cbor = ["dep:multi-cbor", "multi-cbor/tags"]
 
 [dependencies]
-multi-base = { package = "bs-multibase", version = "0.7.0", path = "../bettersign/crates/multibase", default-features = false }
-multi-codec = { package = "bs-multicodec", version = "0.7.0", path = "../bettersign/crates/multicodec" }
-multi-hash = { package = "bs-multihash", version = "0.7.0", path = "../bettersign/crates/multihash" }
-multi-trait = { package = "bs-multitrait", version = "0.7.0", path = "../bettersign/crates/multitrait", default-features = false }
-multi-util = { package = "bs-multiutil", version = "0.7.0", path = "../bettersign/crates/multiutil" }
+multi-base = { version = "1.0", default-features = false }
+multi-codec = "1.1"
+multi-hash = "1.0"
+multi-trait = { version = "1.0.5", default-features = false }
+multi-util = "1.1"
 thiserror = "2.0"
 serde = { version = "1.0", default-features = false, features = [
   "alloc",
   "derive",
 ], optional = true }
-multi-cbor = { version = "0.1", path = "../multi-cbor", optional = true }
+multi-cbor = { version = "0.1", optional = true }
 
 [dev-dependencies]
 criterion = "0.8"
 hex = "0.4"
-multi-cbor = { version = "0.1", path = "../multi-cbor" }
+multi-cbor = "0.1"
 proptest = "1.4"
 serde_json = "1.0"
 serde_test = "1.0"
@@ -45,8 +45,7 @@ path = "benches/multicid_bench.rs"
 pedantic = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }
 cargo = { level = "warn", priority = -1 }
-# The bettersign workspace bs-* path deps pull in older transitive deps
-# (digest 0.10 vs 0.11, syn 2.x vs 3.x). This clears when the bs-* crates
-# publish the EncodeIntoBuffer impls and multi-cid switches to the
-# crates.io multi-* versions.
+# The dependency graph pulls in both syn 2.x (via serde_derive) and syn 3.x
+# (via procedural-macro crates in the dev/test graph). This clears when the
+# ecosystem upgrades.
 multiple_crate_versions = { level = "allow", priority = 1 }

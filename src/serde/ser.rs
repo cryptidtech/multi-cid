@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 use crate::Cid;
-#[cfg(feature = "dag_cbor")]
-use multi_codec::Codec;
-use multi_trait::EncodeIntoBuffer;
+use multi_trait::EncodeInto;
 use serde::ser::{self, SerializeStruct};
 
 /// Serialize instance of [`crate::Cid`]
@@ -22,11 +20,11 @@ impl ser::Serialize for Cid {
             {
                 // build the byte string for DAG-CBOR according to the spec
                 // https://github.com/ipld/specs/blob/master/block-layer/codecs/dag-cbor.md#links
-                let mut v = Vec::new();
                 // start with the Identity codec (0x00)
-                Codec::Identity.encode_into_buffer(&mut v);
+                let identity: Vec<u8> = multi_codec::Codec::Identity.into();
                 // add in the binary serialized CID
-                self.encode_into_buffer(&mut v);
+                let mut v = identity;
+                v.extend_from_slice(&self.encode_into());
                 // annotate the bytes
                 let bytes = multi_cbor::value::Value::Bytes(v);
                 // wrap it as a tagged object with tag 42
@@ -37,8 +35,7 @@ impl ser::Serialize for Cid {
 
             #[cfg(not(feature = "dag_cbor"))]
             {
-                let mut v = Vec::new();
-                self.encode_into_buffer(&mut v);
+                let v: Vec<u8> = self.encode_into();
                 serializer.serialize_bytes(v.as_slice())
             }
         }

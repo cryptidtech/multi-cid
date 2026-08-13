@@ -27,8 +27,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - The `repository` field points at `https://github.com/cryptidtech/multi-cid.git`.
 - The MSRV is declared as 1.85.
 
+### Fixed
+
+- Adapted to the published crates.io APIs of `multi-codec`, `multi-hash`, and `multi-trait`. The published `Codec` and `Multihash` types impl `From<*> for Vec<u8>` and `TryDecodeFrom` but not `EncodeIntoBuffer`. The `From<Cid> for Vec<u8>` impl now builds the byte representation via `extend_from_slice` on `Vec<u8>` obtained from `From<Codec>` and `From<Multihash>`, instead of delegating to `EncodeIntoBuffer` on `Codec` and `Multihash`.
+- Added a `CidEncoder` base encoder for `EncodedCid`. The published `multi-util` `DetectedEncoder` tries `Base58Flickr` before `Base58Btc` (alphabet iteration order) and bails on the first strict decode success. Both base58 alphabets accept the same characters, so a naked base58btc v0 CID string decoded under `Base58Flickr` first and produced wrong bytes. `CidEncoder` tries multibase first, then `Base58Btc` explicitly, then falls back to `DetectedEncoder` so v0 CIDs decode correctly. `EncodedCid` is now `BaseEncoded<Cid, CidEncoder>` instead of `BaseEncoded<Cid, DetectedEncoder>`.
+
 ### Notes
 
-- The `multi-base`, `multi-codec`, `multi-hash`, `multi-trait`, and `multi-util` dependencies currently point at the `bs-*` workspace path deps in `bettersign/crates/` via `package` rename. The published crates.io versions of `multi-codec` and `multi-hash` lack the `EncodeIntoBuffer` and `TryDecodeFrom` trait impls that `Cid` needs. When those impls are published, the path deps will switch to the crates.io versions.
+- The `multi-base`, `multi-codec`, `multi-hash`, `multi-trait`, and `multi-util` dependencies use the published crates.io versions.
 
 [0.1.0]: https://github.com/cryptidtech/multi-cid/releases/tag/v0.1.0

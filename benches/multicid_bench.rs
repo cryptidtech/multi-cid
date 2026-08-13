@@ -5,7 +5,7 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use multi_cid::{cid, Cid};
 use multi_codec::Codec;
 use multi_hash::Builder as MhBuilder;
-use multi_trait::EncodeIntoBuffer;
+use multi_trait::EncodeInto;
 use std::hint::black_box;
 
 /// Benchmark CID encoding
@@ -23,8 +23,7 @@ fn bench_cid_encoding(c: &mut Criterion) {
 
     c.bench_function("cid_to_bytes", |b| {
         b.iter(|| {
-            let mut bytes = Vec::new();
-            black_box(&cid).encode_into_buffer(&mut bytes);
+            let _bytes: Vec<u8> = black_box(&cid).encode_into();
         });
     });
 }
