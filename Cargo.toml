@@ -1,35 +1,52 @@
 [package]
-name = "multicid"
-version = "1.0.5"
+name = "multi-cid"
+version = "0.1.0"
 edition = "2021"
+rust-version = "1.85"
 authors = ["Dave Grantham <dwg@linuxprogrammer.org>"]
-description = "Multicodec compatible content identifier implementation"
-repository = "https://github.com/cryptidtech/multicid.git"
+description = "Content Identifier (CID) implementation compatible with IPFS and IPLD"
+repository = "https://github.com/cryptidtech/multi-cid.git"
 readme = "README.md"
 license = "Apache-2.0"
+keywords = ["cid", "content-identifier", "ipfs", "ipld", "multiformats"]
+categories = ["cryptography", "encoding"]
 
 [features]
-default = ["serde"]
-dag_cbor = ["serde_cbor", "serde_cbor/tags"]
+default = ["serde", "dag_cbor"]
+dag_cbor = ["dep:multi-cbor", "multi-cbor/tags"]
 
 [dependencies]
-multibase = { version = "1.0", git = "https://github.com/cryptidtech/rust-multibase.git" }
-multicodec = { version = "1.0", git = "https://github.com/cryptidtech/rust-multicodec.git" }
-multihash = { version = "1.0", git = "https://github.com/cryptidtech/multihash.git" }
-multikey = { version = "1.0", git = "https://github.com/DougAnderson444/multikey.git" }
-multisig = { version = "1.0", git = "https://github.com/DougAnderson444/multisig.git" }
-multitrait = { version = "1.0", git = "https://github.com/cryptidtech/multitrait.git" }
-multiutil = { version = "1.0", git = "https://github.com/cryptidtech/multiutil.git" }
-rand = "0.8"
+multi-base = { package = "bs-multibase", version = "0.7.0", path = "../bettersign/crates/multibase", default-features = false }
+multi-codec = { package = "bs-multicodec", version = "0.7.0", path = "../bettersign/crates/multicodec" }
+multi-hash = { package = "bs-multihash", version = "0.7.0", path = "../bettersign/crates/multihash" }
+multi-trait = { package = "bs-multitrait", version = "0.7.0", path = "../bettersign/crates/multitrait", default-features = false }
+multi-util = { package = "bs-multiutil", version = "0.7.0", path = "../bettersign/crates/multiutil" }
+thiserror = "2.0"
 serde = { version = "1.0", default-features = false, features = [
   "alloc",
   "derive",
 ], optional = true }
-serde_cbor = { version = "0.11", optional = true }
-thiserror = "1.0"
+multi-cbor = { version = "0.1", path = "../multi-cbor", optional = true }
 
 [dev-dependencies]
+criterion = "0.8"
 hex = "0.4"
-serde_cbor = "0.11"
+multi-cbor = { version = "0.1", path = "../multi-cbor" }
+proptest = "1.4"
 serde_json = "1.0"
 serde_test = "1.0"
+
+[[bench]]
+name = "multicid_bench"
+harness = false
+path = "benches/multicid_bench.rs"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+# The bettersign workspace bs-* path deps pull in older transitive deps
+# (digest 0.10 vs 0.11, syn 2.x vs 3.x). This clears when the bs-* crates
+# publish the EncodeIntoBuffer impls and multi-cid switches to the
+# crates.io multi-* versions.
+multiple_crate_versions = { level = "allow", priority = 1 }
