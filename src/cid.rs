@@ -1,11 +1,13 @@
-// SPDX-License-Idnetifier: Apache-2.0
+// SPDX-License-Identifier: Apache-2.0
 use crate::{error::CidError, Error};
 use core::fmt;
-use multibase::Base;
-use multicodec::Codec;
-use multihash::Multihash;
-use multitrait::{Null, TryDecodeFrom};
-use multiutil::{Base58Encoder, BaseEncoded, CodecInfo, DetectedEncoder, EncodingInfo};
+use multi_base::Base;
+use multi_codec::Codec;
+use multi_hash::Multihash;
+use multi_trait::{EncodeInto, EncodeIntoBuffer, Null, TryDecodeFrom};
+use multi_util::{
+    Base58Encoder, BaseEncoded, BaseEncoder, CodecInfo, DetectedEncoder, EncodingInfo,
+};
 
 /// the multicodec sigil for Cid
 pub const SIGIL: Codec = Codec::Cidv1;
@@ -13,9 +15,51 @@ pub const SIGIL: Codec = Codec::Cidv1;
 /// a bare base58 encoded Cid
 pub type LegacyEncodedCid = BaseEncoded<Cid, Base58Encoder>;
 
+/// A base encoder for CIDs that tries multibase first, then explicit
+/// `Base58Btc` for unprefixed v0 CIDs, then the general `DetectedEncoder`
+/// fallback.
+///
+/// The published `multi-util` `DetectedEncoder` tries `Base58Flickr` before
+/// `Base58Btc` (alphabet iteration order) and bails on the first strict
+/// decode success. Both base58 alphabets accept the same characters, so a
+/// naked base58btc v0 CID string decodes under `Base58Flickr` first and
+/// produces wrong bytes. This encoder tries `Base58Btc` explicitly before
+/// the general fallback so v0 CIDs decode correctly.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct CidEncoder {}
+
+impl BaseEncoder for CidEncoder {
+    fn to_base_encoded(base: Base, b: &[u8]) -> String {
+        DetectedEncoder::to_base_encoded(base, b)
+    }
+
+    fn from_base_encoded(s: &str) -> Result<Vec<(Base, Vec<u8>)>, multi_util::Error> {
+        // First try permissive multibase decoding (prefix-based).
+        if let Ok((base, data)) = multi_base::decode(s, false) {
+            return Ok(vec![(base, data)]);
+        }
+        // Try Base58Btc explicitly before the general detected fallback.
+        // This is required for unprefixed v0 CIDs: the DetectedEncoder tries
+        // Base58Flickr first and bails, producing wrong bytes.
+        if let Ok(data) = Base::Base58Btc.decode(s, true) {
+            return Ok(vec![(Base::Base58Btc, data)]);
+        }
+        // Fall back to the general detected encoder for other naked bases.
+        DetectedEncoder::from_base_encoded(s)
+    }
+
+    fn debug_string(base: Base) -> String {
+        DetectedEncoder::debug_string(base)
+    }
+
+    fn preferred_encoding(base: Base) -> Base {
+        DetectedEncoder::preferred_encoding(base)
+    }
+}
+
 /// a multibase encoded Cid that detects encoding while decoding. this allows transparent support
-/// for Base58Btc encoded v0 Cid's as well as multibase encoded v1 Cid's
-pub type EncodedCid = BaseEncoded<Cid, DetectedEncoder>;
+/// for `Base58Btc` encoded v0 Cid's as well as multibase encoded v1 Cid's
+pub type EncodedCid = BaseEncoded<Cid, CidEncoder>;
 
 /// implementation of cid
 #[derive(Clone, Eq, Ord, PartialOrd, PartialEq)]
@@ -34,7 +78,7 @@ impl Default for Cid {
             .with_target_codec(Codec::DagCbor)
             .with_hash(&Multihash::default())
             .try_build()
-            .unwrap()
+            .expect("hardcoded default CID components are valid")
     }
 }
 
@@ -68,17 +112,32 @@ impl EncodingInfo for Cid {
 
 impl From<Cid> for Vec<u8> {
     fn from(cid: Cid) -> Self {
-        let mut v = Vec::default();
+        let mut v = Self::default();
         // if we're not a v0 Cid, add in the version and the encoding codec
         if cid.codec() != Codec::Identity {
             // add in the Cid codec
-            v.append(&mut cid.codec.into());
+            let codec_bytes: Self = cid.codec.into();
+            v.extend_from_slice(&codec_bytes);
             // add in the target encoding codec
-            v.append(&mut cid.target_codec.into());
+            let target_bytes: Self = cid.target_codec.into();
+            v.extend_from_slice(&target_bytes);
         }
         // add in the multihash data
-        v.append(&mut cid.hash.into());
+        let hash_bytes: Self = cid.hash.into();
+        v.extend_from_slice(&hash_bytes);
         v
+    }
+}
+
+impl EncodeInto for Cid {
+    fn encode_into(&self) -> Vec<u8> {
+        self.clone().into()
+    }
+}
+
+impl EncodeIntoBuffer for Cid {
+    fn encode_into_buffer(&self, buffer: &mut Vec<u8>) {
+        buffer.extend_from_slice(&self.clone().encode_into());
     }
 }
 
@@ -133,7 +192,7 @@ impl Null for Cid {
             .with_target_codec(Codec::Identity)
             .with_hash(&Multihash::null())
             .try_build()
-            .unwrap()
+            .expect("hardcoded null CID components are valid")
     }
 
     fn is_null(&self) -> bool {
@@ -143,15 +202,15 @@ impl Null for Cid {
 
 impl fmt::Debug for Cid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if self.codec() != Codec::Identity {
+        if self.codec() == Codec::Identity {
+            write!(f, "cidv0 - {:?} - {:?}", Codec::DagPb, self.hash)
+        } else {
             // we have a v1 or later Cid
             write!(
                 f,
                 "{:?} - {:?} - {:?}",
                 self.codec, self.target_codec, self.hash
             )
-        } else {
-            write!(f, "cidv0 - {:?} - {:?}", Codec::DagPb, self.hash)
         }
     }
 }
@@ -167,28 +226,32 @@ pub struct Builder {
 
 impl Builder {
     /// create a cid with the given codec (e.g. Cidv1, etc)
-    /// use Builder::default() to get a v0 CID (see the tests below)
+    /// use `Builder::default()` to get a v0 CID (see the tests below)
+    #[must_use]
     pub fn new(codec: Codec) -> Self {
-        Builder {
+        Self {
             codec: Some(codec),
             ..Default::default()
         }
     }
 
     /// set the target encoding codec
-    pub fn with_target_codec(mut self, codec: Codec) -> Self {
+    #[must_use]
+    pub const fn with_target_codec(mut self, codec: Codec) -> Self {
         self.target_codec = Some(codec);
         self
     }
 
     /// set the mulithas
+    #[must_use]
     pub fn with_hash(mut self, hash: &Multihash) -> Self {
         self.hash = Some(hash.clone());
         self
     }
 
     /// set the base encoding codec
-    pub fn with_base_encoding(mut self, base: Base) -> Self {
+    #[must_use]
+    pub const fn with_base_encoding(mut self, base: Base) -> Self {
         self.base_encoding = Some(base);
         self
     }
@@ -210,8 +273,7 @@ impl Builder {
             return Err(CidError::LegacyCid.into());
         }
         Ok(EncodedCid::new(
-            self.base_encoding
-                .unwrap_or_else(Cid::preferred_encoding),
+            self.base_encoding.unwrap_or_else(Cid::preferred_encoding),
             self.try_build()?,
         ))
     }
@@ -239,7 +301,7 @@ impl Builder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use multihash::mh;
+    use multi_hash::mh;
 
     #[test]
     fn test_default() {
@@ -275,17 +337,23 @@ mod tests {
         assert_eq!(Codec::Sha2256, v0_1.hash.codec());
 
         // this does not assume a multibase encoded CID
-        let v0_2 = EncodedCid::try_from("bafybeihcrr5owouhnms63areolshu2lp4jjbjqlhf4exegk7tnso5ja6py").unwrap();
+        let v0_2 =
+            EncodedCid::try_from("bafybeihcrr5owouhnms63areolshu2lp4jjbjqlhf4exegk7tnso5ja6py")
+                .unwrap();
         assert_eq!(Codec::Cidv1, v0_2.codec());
         assert_eq!(Codec::DagPb, v0_2.target_codec);
         assert_eq!(Codec::Sha2256, v0_2.hash.codec());
 
-        let v0_3 = EncodedCid::try_from("f01701220e28c7aeb3a876b25ed822472e47a696fe25214c1672f0972195f9b64eea41e7e").unwrap();
+        let v0_3 = EncodedCid::try_from(
+            "f01701220e28c7aeb3a876b25ed822472e47a696fe25214c1672f0972195f9b64eea41e7e",
+        )
+        .unwrap();
         assert_eq!(Codec::Cidv1, v0_3.codec());
         assert_eq!(Codec::DagPb, v0_3.target_codec);
         assert_eq!(Codec::Sha2256, v0_3.hash.codec());
 
-        let v0_4 = EncodedCid::try_from("uAXASIOKMeus6h2sl7YIkcuR6aW_iUhTBZy8Jchlfm2TupB5-").unwrap();
+        let v0_4 =
+            EncodedCid::try_from("uAXASIOKMeus6h2sl7YIkcuR6aW_iUhTBZy8Jchlfm2TupB5-").unwrap();
         assert_eq!(Codec::Cidv1, v0_4.codec());
         assert_eq!(Codec::DagPb, v0_4.target_codec);
         assert_eq!(Codec::Sha2256, v0_4.hash.codec());
@@ -389,7 +457,7 @@ mod tests {
         let cid1 = Cid::null();
         assert!(cid1.is_null());
         let cid2 = Cid::default();
-        assert!(cid1 != cid2);
+        assert_ne!(cid1, cid2);
         assert!(!cid2.is_null());
     }
 }

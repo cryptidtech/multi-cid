@@ -1,11 +1,10 @@
-// SPDX-License-Idnetifier: Apache-2.0
-use crate::{vlad, Cid, Vlad};
+// SPDX-License-Identifier: Apache-2.0
+use crate::Cid;
 use core::fmt;
-use multicodec::Codec;
-use multihash::Multihash;
-use multikey::Nonce;
+use multi_codec::Codec;
+use multi_hash::Multihash;
 #[cfg(feature = "dag_cbor")]
-use multitrait::TryDecodeFrom;
+use multi_trait::TryDecodeFrom;
 use serde::{
     de::{Error, MapAccess, Visitor},
     Deserialize, Deserializer,
@@ -90,7 +89,7 @@ impl<'de> Deserialize<'de> for Cid {
         } else {
             #[cfg(feature = "dag_cbor")]
             {
-                let tagged: serde_cbor::tags::Tagged<&'de [u8]> =
+                let tagged: multi_cbor::tags::Tagged<&'de [u8]> =
                     Deserialize::deserialize(deserializer)?;
                 if tagged.tag != Some(42_u64) {
                     return Err(Error::custom("improperly tagged DAG-CBOR CID"));
@@ -121,69 +120,6 @@ impl<'de> Deserialize<'de> for Cid {
                 let b: &'de [u8] = Deserialize::deserialize(deserializer)?;
                 Ok(Self::try_from(b).map_err(|e| Error::custom(e.to_string()))?)
             }
-        }
-    }
-}
-
-/// Deserialize instance of [`crate::Vlad`]
-impl<'de> Deserialize<'de> for Vlad {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        const FIELDS: &[&str] = &["nonce", "cid"];
-
-        #[derive(Deserialize)]
-        #[serde(field_identifier, rename_all = "lowercase")]
-        enum Field {
-            Nonce,
-            Cid,
-        }
-
-        struct VladVisitor;
-
-        impl<'de> Visitor<'de> for VladVisitor {
-            type Value = Vlad;
-
-            fn expecting(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-                write!(fmt, "struct Vlad")
-            }
-
-            fn visit_map<V>(self, mut map: V) -> Result<Vlad, V::Error>
-            where
-                V: MapAccess<'de>,
-            {
-                let mut nonce = None;
-                let mut cid = None;
-                while let Some(key) = map.next_key()? {
-                    match key {
-                        Field::Nonce => {
-                            if nonce.is_some() {
-                                return Err(Error::duplicate_field("nonce"));
-                            }
-                            let n: Nonce = map.next_value()?;
-                            nonce = Some(n);
-                        }
-                        Field::Cid => {
-                            if cid.is_some() {
-                                return Err(Error::duplicate_field("cid"));
-                            }
-                            let c: Cid = map.next_value()?;
-                            cid = Some(c);
-                        }
-                    }
-                }
-                let nonce = nonce.ok_or_else(|| Error::missing_field("nonce"))?;
-                let cid = cid.ok_or_else(|| Error::missing_field("cid"))?;
-                Ok(Self::Value { nonce, cid })
-            }
-        }
-
-        if deserializer.is_human_readable() {
-            deserializer.deserialize_struct(vlad::SIGIL.as_str(), FIELDS, VladVisitor)
-        } else {
-            let b: &'de [u8] = Deserialize::deserialize(deserializer)?;
-            Ok(Self::try_from(b).map_err(|e| Error::custom(e.to_string()))?)
         }
     }
 }

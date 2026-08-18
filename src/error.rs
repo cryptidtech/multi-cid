@@ -1,31 +1,22 @@
-// SPDX-License-Idnetifier: Apache-2.0
+// SPDX-License-Identifier: Apache-2.0
 
 /// Errors created by this library
-#[derive(Clone, Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
     /// A multicodec decoding error
     #[error(transparent)]
-    Multicodec(#[from] multicodec::Error),
+    Multicodec(#[from] multi_codec::Error),
     /// A multihash error
     #[error(transparent)]
-    Multihash(#[from] multihash::Error),
-    /// A mulikey error
-    #[error(transparent)]
-    Multikey(#[from] multikey::Error),
-    /// A multisig error
-    #[error(transparent)]
-    Multisig(#[from] multisig::Error),
+    Multihash(#[from] multi_hash::Error),
     /// Cid error
     #[error(transparent)]
     Cid(#[from] CidError),
-    /// Vlad error
-    #[error(transparent)]
-    Vlad(#[from] VladError),
 }
 
 /// Cid Errors created by this library
-#[derive(Clone, Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum CidError {
     /// Missing target codec
@@ -42,17 +33,34 @@ pub enum CidError {
     ModernCid,
 }
 
-/// Vlad Errors created by this library
-#[derive(Clone, Debug, thiserror::Error)]
-#[non_exhaustive]
-pub enum VladError {
-    /// Missing sigil 0x07
-    #[error("Missing Vlad sigil")]
-    MissingSigil,
-    /// Missing nonce
-    #[error("Missing nonce")]
-    MissingNonce,
-    /// Missing nonce
-    #[error("Missing cid")]
-    MissingCid,
+impl Error {
+    /// Get the error kind as a string
+    #[must_use]
+    pub const fn kind(&self) -> &str {
+        match self {
+            Self::Multicodec(_) => "Multicodec",
+            Self::Multihash(_) => "Multihash",
+            Self::Cid(_) => "Cid",
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_error_kind() {
+        let err = Error::Cid(CidError::MissingHash);
+        assert_eq!(err.kind(), "Cid");
+    }
+
+    #[test]
+    fn test_error_send_sync() {
+        fn assert_send<T: Send>() {}
+        fn assert_sync<T: Sync>() {}
+
+        assert_send::<Error>();
+        assert_sync::<Error>();
+    }
 }

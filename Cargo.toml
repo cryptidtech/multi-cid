@@ -1,35 +1,51 @@
 [package]
-name = "multicid"
-version = "1.0.5"
+name = "multi-cid"
+version = "0.1.0"
 edition = "2021"
+rust-version = "1.85"
 authors = ["Dave Grantham <dwg@linuxprogrammer.org>"]
-description = "Multicodec compatible content identifier implementation"
-repository = "https://github.com/cryptidtech/multicid.git"
+description = "Content Identifier (CID) implementation compatible with IPFS and IPLD"
+repository = "https://github.com/cryptidtech/multi-cid.git"
 readme = "README.md"
 license = "Apache-2.0"
+keywords = ["cid", "content-identifier", "ipfs", "ipld", "multiformats"]
+categories = ["cryptography", "encoding"]
 
 [features]
-default = ["serde"]
-dag_cbor = ["serde_cbor", "serde_cbor/tags"]
+default = ["serde", "dag_cbor"]
+dag_cbor = ["dep:multi-cbor", "multi-cbor/tags"]
 
 [dependencies]
-multibase = { version = "1.0", git = "https://github.com/cryptidtech/rust-multibase.git" }
-multicodec = { version = "1.0", git = "https://github.com/cryptidtech/rust-multicodec.git" }
-multihash = { version = "1.0", git = "https://github.com/cryptidtech/multihash.git" }
-multikey = { version = "1.0", git = "https://github.com/DougAnderson444/multikey.git" }
-multisig = { version = "1.0", git = "https://github.com/DougAnderson444/multisig.git" }
-multitrait = { version = "1.0", git = "https://github.com/cryptidtech/multitrait.git" }
-multiutil = { version = "1.0", git = "https://github.com/cryptidtech/multiutil.git" }
-rand = "0.8"
+multi-base = { version = "1.0", default-features = false }
+multi-cbor = { version = "0.1", optional = true }
+multi-codec = "1.2"
+multi-hash = "1.1"
+multi-trait = { version = "1.0", default-features = false }
+multi-util = "1.1"
+thiserror = "2.0"
 serde = { version = "1.0", default-features = false, features = [
   "alloc",
   "derive",
 ], optional = true }
-serde_cbor = { version = "0.11", optional = true }
-thiserror = "1.0"
 
 [dev-dependencies]
+criterion = "0.8"
 hex = "0.4"
-serde_cbor = "0.11"
+multi-cbor = "0.1"
+proptest = "1.4"
 serde_json = "1.0"
 serde_test = "1.0"
+
+[[bench]]
+name = "multicid_bench"
+harness = false
+path = "benches/multicid_bench.rs"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+# The dependency graph pulls in both syn 2.x (via serde_derive) and syn 3.x
+# (via procedural-macro crates in the dev/test graph). This clears when the
+# ecosystem upgrades.
+multiple_crate_versions = { level = "allow", priority = 1 }
