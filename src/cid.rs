@@ -4,7 +4,7 @@ use core::fmt;
 use multi_base::Base;
 use multi_codec::Codec;
 use multi_hash::Multihash;
-use multi_trait::{EncodeInto, Null, TryDecodeFrom};
+use multi_trait::{EncodeInto, EncodeIntoBuffer, Null, TryDecodeFrom};
 use multi_util::{
     Base58Encoder, BaseEncoded, BaseEncoder, CodecInfo, DetectedEncoder, EncodingInfo,
 };
@@ -132,6 +132,12 @@ impl From<Cid> for Vec<u8> {
 impl EncodeInto for Cid {
     fn encode_into(&self) -> Vec<u8> {
         self.clone().into()
+    }
+}
+
+impl EncodeIntoBuffer for Cid {
+    fn encode_into_buffer(&self, buffer: &mut Vec<u8>) {
+        buffer.extend_from_slice(&self.clone().encode_into());
     }
 }
 
