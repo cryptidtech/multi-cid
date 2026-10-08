@@ -53,7 +53,7 @@ For DAG-CBOR tag 42 support:
 multi-cid = { version = "0.1", features = ["dag_cbor"] }
 ```
 
-MSRV: Rust 1.85 (Edition 2021).
+MSRV: Rust 1.99 (Edition 2021).
 
 ## Usage
 
@@ -63,10 +63,9 @@ use multi_codec::Codec;
 use multi_hash::Builder as MhBuilder;
 
 // Create a multihash
-let hash = MhBuilder::new_from_bytes(Codec::Sha2256, b"hello world")
-    .unwrap()
-    .try_build()
-    .unwrap();
+let mut hasher = MhBuilder::new(Codec::Sha2256).unwrap();
+hasher.update(b"hello world");
+let hash = hasher.try_build().unwrap();
 
 // Create a CID v1
 let cid = cid::Builder::new(Codec::Sha2256)
