@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-10-08
+
+### Changed
+
+- Raised the `multi-hash` requirement 1.1.2 → 2.0 and migrated the tests, benchmarks, and doc examples from the removed `Builder::new_from_bytes` API to the streaming builder shape (`Builder::new(codec)?` + `update(bytes)` + `try_build()`). The crate requires multi-hash 2.0.0, which declares `rust-version = "1.99"`. No public API changes.
+- Raised the MSRV from 1.85 to 1.99 and applied clippy 0.1.99 fixes.
+
 ## [0.2.0] - 2026-08-18
 
 ### Changed
@@ -55,6 +62,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Notes
 
 - The `multi-base`, `multi-codec`, `multi-hash`, `multi-trait`, and `multi-util` dependencies use the published crates.io versions.
+
+[0.3.0]: https://github.com/cryptidtech/multi-cid/releases/tag/v0.3.0
 
 [0.2.0]: https://github.com/cryptidtech/multi-cid/releases/tag/v0.2.0
 
