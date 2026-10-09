@@ -313,13 +313,10 @@ mod tests {
 
     #[test]
     fn test_v0() {
+        let mut hasher = mh::Builder::new(Codec::Sha2256).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v0 = Builder::default()
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha2256, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build()
             .unwrap();
 
@@ -371,13 +368,10 @@ mod tests {
 
     #[test]
     fn test_v0_binary_roundtrip() {
+        let mut hasher = mh::Builder::new(Codec::Sha2256).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v0 = Builder::default()
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha2256, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build()
             .unwrap();
         let v: Vec<u8> = v0.clone().into();
@@ -386,13 +380,10 @@ mod tests {
 
     #[test]
     fn test_v0_encoded_roundtrip() {
+        let mut hasher = mh::Builder::new(Codec::Sha2256).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v0 = Builder::default()
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha2256, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build_legacy_encoded()
             .unwrap();
         let s = v0.to_string();
@@ -402,14 +393,11 @@ mod tests {
 
     #[test]
     fn test_v1() {
+        let mut hasher = mh::Builder::new(Codec::Sha3512).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v1 = Builder::new(Codec::Cidv1)
             .with_target_codec(Codec::DagCbor)
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha3512, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build()
             .unwrap();
 
@@ -420,14 +408,11 @@ mod tests {
 
     #[test]
     fn test_v1_binary_roundtrip() {
+        let mut hasher = mh::Builder::new(Codec::Sha3512).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v1 = Builder::new(Codec::Cidv1)
             .with_target_codec(Codec::DagCbor)
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha3512, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build()
             .unwrap();
         let v: Vec<u8> = v1.clone().into();
@@ -436,15 +421,12 @@ mod tests {
 
     #[test]
     fn test_v1_encoded_roundtrip() {
+        let mut hasher = mh::Builder::new(Codec::Sha3256).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v1 = Builder::new(Codec::Cidv1)
             .with_target_codec(Codec::DagCbor)
             .with_base_encoding(Base::Base32Lower)
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha3256, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build_encoded()
             .unwrap();
         let s = v1.to_string();

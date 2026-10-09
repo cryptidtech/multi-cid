@@ -29,10 +29,9 @@
 //! use multi_hash::Builder as MhBuilder;
 //!
 //! // Create a multihash
-//! let hash = MhBuilder::new_from_bytes(Codec::Sha2256, b"hello world")
-//!     .unwrap()
-//!     .try_build()
-//!     .unwrap();
+//! let mut hasher = MhBuilder::new(Codec::Sha2256).unwrap();
+//! hasher.update(b"hello world");
+//! let hash = hasher.try_build().unwrap();
 //!
 //! // Create a CID v1
 //! let cid = cid::Builder::new(Codec::Sha2256)
@@ -49,10 +48,9 @@
 //! use multi_codec::Codec;
 //! use multi_hash::Builder as MhBuilder;
 //!
-//! let hash = MhBuilder::new_from_bytes(Codec::Sha2256, b"data")
-//!     .unwrap()
-//!     .try_build()
-//!     .unwrap();
+//! let mut hasher = MhBuilder::new(Codec::Sha2256).unwrap();
+//! hasher.update(b"data");
+//! let hash = hasher.try_build().unwrap();
 //!
 //! let cid = cid::Builder::new(Codec::Sha2256)
 //!     .with_target_codec(Codec::DagCbor)
@@ -107,10 +105,9 @@ pub mod serde;
 /// use multi_cid::prelude::*;
 /// use multi_hash::Builder as MhBuilder;
 ///
-/// let hash = MhBuilder::new_from_bytes(Codec::Sha2256, b"test")
-///     .unwrap()
-///     .try_build()
-///     .unwrap();
+/// let mut hasher = MhBuilder::new(Codec::Sha2256).unwrap();
+/// hasher.update(b"test");
+/// let hash = hasher.try_build().unwrap();
 /// let cid = cid::Builder::new(Codec::Sha2256)
 ///     .with_target_codec(Codec::DagCbor)
 ///     .with_hash(&hash)

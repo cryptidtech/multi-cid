@@ -13,13 +13,10 @@ mod tests {
 
     #[test]
     fn test_cidv0_serde_encoded_string() {
+        let mut hasher = mh::Builder::new(Codec::Sha2256).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v0 = cid::Builder::default()
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha2256, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build_legacy_encoded()
             .unwrap();
 
@@ -33,13 +30,10 @@ mod tests {
 
     #[test]
     fn test_cidv0_serde_readable() {
+        let mut hasher = mh::Builder::new(Codec::Sha2256).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v0 = cid::Builder::default()
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha2256, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build()
             .unwrap();
 
@@ -73,13 +67,10 @@ mod tests {
 
     #[test]
     fn test_cidv0_serde_json() {
+        let mut hasher = mh::Builder::new(Codec::Sha2256).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v0 = cid::Builder::default()
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha2256, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build()
             .unwrap();
 
@@ -91,13 +82,10 @@ mod tests {
     #[cfg(not(feature = "dag_cbor"))]
     #[test]
     fn test_cidv0_serde_cbor() {
+        let mut hasher = mh::Builder::new(Codec::Sha2256).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v0 = cid::Builder::default()
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha2256, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build()
             .unwrap();
 
@@ -113,13 +101,10 @@ mod tests {
     #[cfg(feature = "dag_cbor")]
     #[test]
     fn test_cidv0_serde_dag_cbor() {
+        let mut hasher = mh::Builder::new(Codec::Sha2256).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v0 = cid::Builder::default()
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha2256, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build()
             .unwrap();
 
@@ -136,14 +121,11 @@ mod tests {
 
     #[test]
     fn test_cidv1_serde_encoded_string() {
+        let mut hasher = mh::Builder::new(Codec::Sha3512).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v1 = cid::Builder::new(Codec::Cidv1)
             .with_target_codec(Codec::DagCbor)
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha3512, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build_encoded()
             .unwrap();
 
@@ -157,14 +139,11 @@ mod tests {
 
     #[test]
     fn test_cidv1_serde_readable() {
+        let mut hasher = mh::Builder::new(Codec::Sha3512).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v1 = cid::Builder::new(Codec::Cidv1)
             .with_target_codec(Codec::DagCbor)
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha3512, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build()
             .unwrap();
 
@@ -194,14 +173,11 @@ mod tests {
     #[cfg(not(feature = "dag_cbor"))]
     #[test]
     fn test_cidv1_serde_cbor() {
+        let mut hasher = mh::Builder::new(Codec::Sha2256).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v1 = cid::Builder::new(Codec::Cidv1)
             .with_target_codec(Codec::Raw)
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha2256, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build()
             .unwrap();
 
@@ -219,14 +195,11 @@ mod tests {
     #[cfg(feature = "dag_cbor")]
     #[test]
     fn test_cidv1_serde_dag_cbor() {
+        let mut hasher = mh::Builder::new(Codec::Sha2256).unwrap();
+        hasher.update(b"for great justice, move every zig!");
         let v1 = cid::Builder::new(Codec::Cidv1)
             .with_target_codec(Codec::Raw)
-            .with_hash(
-                &mh::Builder::new_from_bytes(Codec::Sha2256, b"for great justice, move every zig!")
-                    .unwrap()
-                    .try_build()
-                    .unwrap(),
-            )
+            .with_hash(&hasher.try_build().unwrap())
             .try_build()
             .unwrap();
 

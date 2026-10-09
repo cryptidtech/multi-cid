@@ -10,10 +10,9 @@ use std::hint::black_box;
 
 /// Benchmark CID encoding
 fn bench_cid_encoding(c: &mut Criterion) {
-    let hash = MhBuilder::new_from_bytes(Codec::Sha2256, b"benchmark data")
-        .unwrap()
-        .try_build()
-        .unwrap();
+    let mut hasher = MhBuilder::new(Codec::Sha2256).unwrap();
+    hasher.update(b"benchmark data");
+    let hash = hasher.try_build().unwrap();
 
     let cid = cid::Builder::new(Codec::Cidv1)
         .with_target_codec(Codec::DagCbor)
@@ -30,10 +29,9 @@ fn bench_cid_encoding(c: &mut Criterion) {
 
 /// Benchmark CID decoding
 fn bench_cid_decoding(c: &mut Criterion) {
-    let hash = MhBuilder::new_from_bytes(Codec::Sha2256, b"benchmark data")
-        .unwrap()
-        .try_build()
-        .unwrap();
+    let mut hasher = MhBuilder::new(Codec::Sha2256).unwrap();
+    hasher.update(b"benchmark data");
+    let hash = hasher.try_build().unwrap();
 
     let cid = cid::Builder::new(Codec::Cidv1)
         .with_target_codec(Codec::DagCbor)
