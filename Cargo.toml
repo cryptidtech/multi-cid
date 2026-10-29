@@ -1,6 +1,6 @@
 [package]
 name = "multi-cid"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 rust-version = "1.99"
 authors = ["Dave Grantham <dwg@linuxprogrammer.org>"]
@@ -18,10 +18,10 @@ dag_cbor = ["dep:multi-cbor", "multi-cbor/tags"]
 [dependencies]
 multi-base = { version = "1.1", default-features = false }
 multi-cbor = { version = "0.2", optional = true }
-multi-codec = "1.6"
-multi-hash = "2.0"
+multi-codec = "2"
+multi-hash = "4"
 multi-trait = { version = "1.1", default-features = false }
-multi-util = "1.2"
+multi-util = "2"
 thiserror = "2.0"
 serde = { version = "1.0", default-features = false, features = [
   "alloc",
